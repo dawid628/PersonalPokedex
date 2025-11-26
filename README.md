@@ -1,59 +1,343 @@
-<p align="center"><a href="https://laravel.com" target="_blank"><img src="https://raw.githubusercontent.com/laravel/art/master/logo-lockup/5%20SVG/2%20CMYK/1%20Full%20Color/laravel-logolockup-cmyk-red.svg" width="400" alt="Laravel Logo"></a></p>
+# Pokemon API - Recruitment Task
+API do zarządzania Pokemonami z integracją z PokeAPI, systemem banowania oraz możliwością dodawania własnych Pokemonów.
 
-<p align="center">
-<a href="https://github.com/laravel/framework/actions"><img src="https://github.com/laravel/framework/workflows/tests/badge.svg" alt="Build Status"></a>
-<a href="https://packagist.org/packages/laravel/framework"><img src="https://img.shields.io/packagist/dt/laravel/framework" alt="Total Downloads"></a>
-<a href="https://packagist.org/packages/laravel/framework"><img src="https://img.shields.io/packagist/v/laravel/framework" alt="Latest Stable Version"></a>
-<a href="https://packagist.org/packages/laravel/framework"><img src="https://img.shields.io/packagist/l/laravel/framework" alt="License"></a>
-</p>
+---
 
-## About Laravel
+## Wymagania
 
-Laravel is a web application framework with expressive, elegant syntax. We believe development must be an enjoyable and creative experience to be truly fulfilling. Laravel takes the pain out of development by easing common tasks used in many web projects, such as:
+- Docker Desktop
+- WSL2 (dla Windows)
+- Git
 
-- [Simple, fast routing engine](https://laravel.com/docs/routing).
-- [Powerful dependency injection container](https://laravel.com/docs/container).
-- Multiple back-ends for [session](https://laravel.com/docs/session) and [cache](https://laravel.com/docs/cache) storage.
-- Expressive, intuitive [database ORM](https://laravel.com/docs/eloquent).
-- Database agnostic [schema migrations](https://laravel.com/docs/migrations).
-- [Robust background job processing](https://laravel.com/docs/queues).
-- [Real-time event broadcasting](https://laravel.com/docs/broadcasting).
+---
 
-Laravel is accessible, powerful, and provides tools required for large, robust applications.
+## Instalacja
 
-## Learning Laravel
+### 1. Sklonuj repozytorium
+```bash
+git clone https://github.com/dawid628/PersonalPokedex.git
+cd PersonalPokedex # upewnij się, ze katalog z repo ma taką nazwę
+```
 
-Laravel has the most extensive and thorough [documentation](https://laravel.com/docs) and video tutorial library of all modern web application frameworks, making it a breeze to get started with the framework. You can also check out [Laravel Learn](https://laravel.com/learn), where you will be guided through building a modern Laravel application.
+### 2. Skopiuj plik konfiguracyjny
+```bash
+cp .env.example .env
+```
 
-If you don't feel like reading, [Laracasts](https://laracasts.com) can help. Laracasts contains thousands of video tutorials on a range of topics including Laravel, modern PHP, unit testing, and JavaScript. Boost your skills by digging into our comprehensive video library.
+### 3. Edytuj `.env`
+```env
+POKEAPI_URL=https://pokeapi.co/api/v2/
+X_SUPER_SECRET_KEY=secret
+```
 
-## Laravel Sponsors
+### 4. Zainstaluj zależności
 
-We would like to extend our thanks to the following sponsors for funding Laravel development. If you are interested in becoming a sponsor, please visit the [Laravel Partners program](https://partners.laravel.com).
+**Linux/macOS/WSL2:**
+```bash
+docker run --rm \
+    -u "$(id -u):$(id -g)" \
+    -v "$(pwd):/var/www/html" \
+    -w /var/www/html \
+    laravelsail/php82-composer:latest \
+    composer install --ignore-platform-reqs
+```
 
-### Premium Partners
+**Windows (PowerShell):**
+```powershell
+docker run --rm `
+    -v "${PWD}:/var/www/html" `
+    -w /var/www/html `
+    laravelsail/php82-composer:latest `
+    composer install --ignore-platform-reqs
+```
 
-- **[Vehikl](https://vehikl.com)**
-- **[Tighten Co.](https://tighten.co)**
-- **[Kirschbaum Development Group](https://kirschbaumdevelopment.com)**
-- **[64 Robots](https://64robots.com)**
-- **[Curotec](https://www.curotec.com/services/technologies/laravel)**
-- **[DevSquad](https://devsquad.com/hire-laravel-developers)**
-- **[Redberry](https://redberry.international/laravel-development)**
-- **[Active Logic](https://activelogic.com)**
+### 5. Uruchom kontenery
+```bash
+./vendor/bin/sail up -d
+```
 
-## Contributing
+### 6. Wygeneruj klucz w kontenerze docker aplikacji
+```bash
+php artisan key:generate
+```
 
-Thank you for considering contributing to the Laravel framework! The contribution guide can be found in the [Laravel documentation](https://laravel.com/docs/contributions).
+### 7. Uruchom migracje w kontenerze
+```bash
+php artisan migrate
+```
 
-## Code of Conduct
+### 8. Gotowe!
 
-In order to ensure that the Laravel community is welcoming to all, please review and abide by the [Code of Conduct](https://laravel.com/docs/contributions#code-of-conduct).
+Aplikacja dostępna pod: `http://localhost`
 
-## Security Vulnerabilities
+---
 
-If you discover a security vulnerability within Laravel, please send an e-mail to Taylor Otwell via [taylor@laravel.com](mailto:taylor@laravel.com). All security vulnerabilities will be promptly addressed.
+## Dokumentacja API (Swagger)
 
-## License
+Interaktywna dokumentacja dostępna pod adresem:
 
-The Laravel framework is open-sourced software licensed under the [MIT license](https://opensource.org/licenses/MIT).
+**http://localhost/api/documentation**
+
+### Wygenerowanie dokumentacji (opcjonalnie)
+```bash
+# w kontenerze docker
+php artisan l5-swagger:generate
+```
+
+---
+
+## Przydatne komendy
+```bash
+# Uruchom kontenery
+./vendor/bin/sail up -d
+
+# Zatrzymaj kontenery
+./vendor/bin/sail down
+
+# Logi
+./vendor/bin/sail logs
+
+# Shell
+./vendor/bin/sail shell
+
+# Artisan
+./vendor/bin/sail artisan route:list
+
+# Composer
+./vendor/bin/sail composer install
+
+# MySQL
+./vendor/bin/sail mysql
+```
+
+---
+
+## Endpointy API
+
+### Publiczne
+
+#### **POST** `/api/info` - Informacje o pokemonach
+
+Pobiera szczegóły pokemonów z PokeAPI i własnych. Wyklucza zakazane.
+
+**Request:**
+```json
+{
+  "pokemons": ["pikachu", "charizard", "mypokemon"]
+}
+```
+
+**Response:**
+```json
+{
+  "success": true,
+  "total_requested": 3,
+  "total_found": 3,
+  "total_banned": 0,
+  "total_not_found": 0,
+  "data": {
+    "found": [
+      {
+        "id": 25,
+        "name": "pikachu",
+        "height": 4,
+        "weight": 60,
+        "types": ["electric"],
+        "is_custom": false
+      },
+      {
+        "id": 1,
+        "name": "mypokemon",
+        "is_custom": true
+      }
+    ],
+    "banned": [],
+    "not_found": []
+  }
+}
+```
+
+**cURL:**
+```bash
+curl -X POST http://localhost/api/info \
+  -H "Content-Type: application/json" \
+  -d '{"pokemons": ["pikachu", "charizard"]}'
+```
+
+---
+
+#### **GET** `/api/pokemons` - Lista własnych pokemonów
+
+Zwraca wszystkie własne pokemony.
+
+**Response:**
+```json
+{
+  "success": true,
+  "total": 2,
+  "data": [
+    {
+      "id": 1,
+      "name": "mypokemon",
+      "created_at": "2024-01-15T10:30:00.000000Z",
+      "updated_at": "2024-01-15T10:30:00.000000Z"
+    }
+  ]
+}
+```
+
+**cURL:**
+```bash
+curl http://localhost/api/pokemons
+```
+
+---
+
+### Zabezpieczone (wymagany w headerze `X-SUPER-SECRET-KEY`)
+
+#### **GET** `/api/banned` - Lista zakazanych
+
+**cURL:**
+```bash
+curl http://localhost/api/banned \
+  -H "X-SUPER-SECRET-KEY: secret"
+```
+
+---
+
+#### **POST** `/api/banned` - Zabanuj pokemona
+
+**Request:**
+```json
+{
+  "name": "mewtwo"
+}
+```
+
+**cURL:**
+```bash
+curl -X POST http://localhost/api/banned \
+  -H "X-SUPER-SECRET-KEY: secret" \
+  -H "Content-Type: application/json" \
+  -d '{"name": "mewtwo"}'
+```
+
+---
+
+#### **GET** `/api/banned/{name}` - Sprawdź czy zakazany
+
+**cURL:**
+```bash
+curl http://localhost/api/banned/mewtwo \
+  -H "X-SUPER-SECRET-KEY: secret"
+```
+
+---
+
+#### **DELETE** `/api/banned/{name}` - Odbanuj pokemona
+
+**cURL:**
+```bash
+curl -X DELETE http://localhost/api/banned/mewtwo \
+  -H "X-SUPER-SECRET-KEY: secret"
+```
+
+---
+
+#### **POST** `/api/pokemons` - Dodaj własnego pokemona
+
+Nazwa musi być unikalna (nie może istnieć w PokeAPI ani lokalnie).
+
+**Request:**
+```json
+{
+  "name": "mypokemon"
+}
+```
+
+**cURL:**
+```bash
+curl -X POST http://localhost/api/pokemons \
+  -H "X-SUPER-SECRET-KEY: secret" \
+  -H "Content-Type: application/json" \
+  -d '{"name": "mypokemon"}'
+```
+
+---
+
+#### **GET** `/api/pokemons/{name}` - Pobierz własnego pokemona
+
+**cURL:**
+```bash
+curl http://localhost/api/pokemons/mypokemon \
+  -H "X-SUPER-SECRET-KEY: secret"
+```
+
+---
+
+#### **DELETE** `/api/pokemons/{name}` - Usuń własnego pokemona
+
+**cURL:**
+```bash
+curl -X DELETE http://localhost/api/pokemons/mypokemon \
+  -H "X-SUPER-SECRET-KEY: secret"
+```
+
+---
+
+## Przykładowe scenariusze
+
+### Scenariusz 1: Podstawowe operacje
+```bash
+# Dodaj pokemona
+curl -X POST http://localhost/api/pokemons \
+  -H "X-SUPER-SECRET-KEY: secret" \
+  -H "Content-Type: application/json" \
+  -d '{"name": "superfajnypokemon"}'
+
+# Lista
+curl http://localhost/api/pokemons
+
+# Pobierz info
+curl -X POST http://localhost/api/info \
+  -H "Content-Type: application/json" \
+  -d '{"pokemons": ["pikachu", "superfajnypokemon"]}'
+```
+
+### Scenariusz 2: Banowanie
+```bash
+# Zabanuj
+curl -X POST http://localhost/api/banned \
+  -H "X-SUPER-SECRET-KEY: secret" \
+  -H "Content-Type: application/json" \
+  -d '{"name": "pikachu"}'
+
+# Sprawdź (nie pojawi się w wynikach)
+curl -X POST http://localhost/api/info \
+  -H "Content-Type: application/json" \
+  -d '{"pokemons": ["pikachu", "charizard"]}'
+
+# Odbanuj
+curl -X DELETE http://localhost/api/banned/pikachu \
+  -H "X-SUPER-SECRET-KEY: secret"
+```
+
+---
+
+## Architektura
+**Wykorzystane wzorce:** Repository Pattern, Service Layer
+
+---
+
+## Kilka informacji
+
+- **Zakazane pokemony** nie są zwracane w `/api/info`
+- **Własne pokemony** mają flagę `is_custom: true`
+- **Pokemony z PokeAPI** mają flagę `is_custom: false`
+- **Nazwy** mogą zawierać tylko: małe litery, cyfry, myślniki
+- **Nie można dodać** pokemona o nazwie istniejącej w PokeAPI
+
+---
+## Licencja
+
+MIT License
