@@ -123,4 +123,5 @@ return [
         'store' => env('APP_MAINTENANCE_STORE', 'database'),
     ],
 
+    'super_secret_key' => env('X_SUPER_SECRET_KEY', 'default'),
 ];

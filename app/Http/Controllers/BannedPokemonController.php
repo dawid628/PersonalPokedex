@@ -24,7 +24,15 @@ class BannedPokemonController extends Controller
      *     path="/api/banned",
      *     tags={"Banned Pokemons"},
      *     summary="Get all banned pokemons",
-     *     description="Returns list of all banned pokemons",
+     *     description="Returns list of all banned pokemons. Requires API key authentication.",
+     *     security={{"ApiKeyAuth": {}}},
+     *     @OA\Parameter(
+     *         name="X-SUPER-SECRET-KEY",
+     *         in="header",
+     *         required=true,
+     *         description="API key for authentication",
+     *         @OA\Schema(type="string", example="your-super-secret-key-here")
+     *     ),
      *     @OA\Response(
      *         response=200,
      *         description="Successful operation",
@@ -39,6 +47,22 @@ class BannedPokemonController extends Controller
      *                     @OA\Property(property="name", type="string", example="pikachu")
      *                 )
      *             )
+     *         )
+     *     ),
+     *     @OA\Response(
+     *         response=401,
+     *         description="API key is required",
+     *         @OA\JsonContent(
+     *             @OA\Property(property="success", type="boolean", example=false),
+     *             @OA\Property(property="message", type="string", example="API key is required")
+     *         )
+     *     ),
+     *     @OA\Response(
+     *         response=403,
+     *         description="Invalid API key",
+     *         @OA\JsonContent(
+     *             @OA\Property(property="success", type="boolean", example=false),
+     *             @OA\Property(property="message", type="string", example="Invalid API key")
      *         )
      *     )
      * )
@@ -59,12 +83,20 @@ class BannedPokemonController extends Controller
      *     path="/api/banned",
      *     tags={"Banned Pokemons"},
      *     summary="Add pokemon to banned list",
-     *     description="Adds a pokemon to the banned list",
+     *     description="Adds a pokemon to the banned list. Requires API key authentication.",
+     *     security={{"ApiKeyAuth": {}}},
+     *     @OA\Parameter(
+     *         name="X-SUPER-SECRET-KEY",
+     *         in="header",
+     *         required=true,
+     *         description="API key for authentication",
+     *         @OA\Schema(type="string", example="your-super-secret-key-here")
+     *     ),
      *     @OA\RequestBody(
      *         required=true,
      *         @OA\JsonContent(
      *             required={"name"},
-     *             @OA\Property(property="name", type="string", example="pikachu")
+     *             @OA\Property(property="name", type="string", example="pikachu", description="Pokemon name (lowercase, letters, numbers and hyphens only)")
      *         )
      *     ),
      *     @OA\Response(
@@ -75,14 +107,52 @@ class BannedPokemonController extends Controller
      *             @OA\Property(property="message", type="string", example="Pokemon banned successfully"),
      *             @OA\Property(
      *                 property="data",
+     *                 type="object",
      *                 @OA\Property(property="id", type="integer", example=1),
      *                 @OA\Property(property="name", type="string", example="pikachu")
      *             )
      *         )
      *     ),
      *     @OA\Response(
+     *         response=401,
+     *         description="API key is required",
+     *         @OA\JsonContent(
+     *             @OA\Property(property="success", type="boolean", example=false),
+     *             @OA\Property(property="message", type="string", example="API key is required")
+     *         )
+     *     ),
+     *     @OA\Response(
+     *         response=403,
+     *         description="Invalid API key",
+     *         @OA\JsonContent(
+     *             @OA\Property(property="success", type="boolean", example=false),
+     *             @OA\Property(property="message", type="string", example="Invalid API key")
+     *         )
+     *     ),
+     *     @OA\Response(
      *         response=409,
-     *         description="Pokemon already banned"
+     *         description="Pokemon already banned",
+     *         @OA\JsonContent(
+     *             @OA\Property(property="success", type="boolean", example=false),
+     *             @OA\Property(property="message", type="string", example="Pokemon is already banned")
+     *         )
+     *     ),
+     *     @OA\Response(
+     *         response=422,
+     *         description="Validation error",
+     *         @OA\JsonContent(
+     *             @OA\Property(property="success", type="boolean", example=false),
+     *             @OA\Property(property="message", type="string", example="Validation error"),
+     *             @OA\Property(
+     *                 property="errors",
+     *                 type="object",
+     *                 @OA\Property(
+     *                     property="name",
+     *                     type="array",
+     *                     @OA\Items(type="string", example="Pokemon name is required")
+     *                 )
+     *             )
+     *         )
      *     )
      * )
      */
@@ -109,14 +179,61 @@ class BannedPokemonController extends Controller
      *     path="/api/banned/{name}",
      *     tags={"Banned Pokemons"},
      *     summary="Check if pokemon is banned",
+     *     description="Check if a specific pokemon is on the banned list. Requires API key authentication.",
+     *     security={{"ApiKeyAuth": {}}},
+     *     @OA\Parameter(
+     *         name="X-SUPER-SECRET-KEY",
+     *         in="header",
+     *         required=true,
+     *         description="API key for authentication",
+     *         @OA\Schema(type="string", example="your-super-secret-key-here")
+     *     ),
      *     @OA\Parameter(
      *         name="name",
      *         in="path",
      *         required=true,
-     *         @OA\Schema(type="string")
+     *         description="Pokemon name to check",
+     *         @OA\Schema(type="string", example="pikachu")
      *     ),
-     *     @OA\Response(response=200, description="Pokemon is banned"),
-     *     @OA\Response(response=404, description="Pokemon is not banned")
+     *     @OA\Response(
+     *         response=200,
+     *         description="Pokemon is banned",
+     *         @OA\JsonContent(
+     *             @OA\Property(property="success", type="boolean", example=true),
+     *             @OA\Property(property="is_banned", type="boolean", example=true),
+     *             @OA\Property(
+     *                 property="data",
+     *                 type="object",
+     *                 @OA\Property(property="id", type="integer", example=1),
+     *                 @OA\Property(property="name", type="string", example="pikachu")
+     *             )
+     *         )
+     *     ),
+     *     @OA\Response(
+     *         response=401,
+     *         description="API key is required",
+     *         @OA\JsonContent(
+     *             @OA\Property(property="success", type="boolean", example=false),
+     *             @OA\Property(property="message", type="string", example="API key is required")
+     *         )
+     *     ),
+     *     @OA\Response(
+     *         response=403,
+     *         description="Invalid API key",
+     *         @OA\JsonContent(
+     *             @OA\Property(property="success", type="boolean", example=false),
+     *             @OA\Property(property="message", type="string", example="Invalid API key")
+     *         )
+     *     ),
+     *     @OA\Response(
+     *         response=404,
+     *         description="Pokemon is not banned",
+     *         @OA\JsonContent(
+     *             @OA\Property(property="success", type="boolean", example=false),
+     *             @OA\Property(property="message", type="string", example="Pokemon is not banned"),
+     *             @OA\Property(property="is_banned", type="boolean", example=false)
+     *         )
+     *     )
      * )
      */
     public function show(string $name): JsonResponse
@@ -143,14 +260,54 @@ class BannedPokemonController extends Controller
      *     path="/api/banned/{name}",
      *     tags={"Banned Pokemons"},
      *     summary="Remove pokemon from banned list",
+     *     description="Removes a pokemon from the banned list. Requires API key authentication.",
+     *     security={{"ApiKeyAuth": {}}},
+     *     @OA\Parameter(
+     *         name="X-SUPER-SECRET-KEY",
+     *         in="header",
+     *         required=true,
+     *         description="API key for authentication",
+     *         @OA\Schema(type="string", example="your-super-secret-key-here")
+     *     ),
      *     @OA\Parameter(
      *         name="name",
      *         in="path",
      *         required=true,
-     *         @OA\Schema(type="string")
+     *         description="Pokemon name to remove from banned list",
+     *         @OA\Schema(type="string", example="pikachu")
      *     ),
-     *     @OA\Response(response=200, description="Pokemon removed successfully"),
-     *     @OA\Response(response=404, description="Pokemon not found")
+     *     @OA\Response(
+     *         response=200,
+     *         description="Pokemon removed successfully",
+     *         @OA\JsonContent(
+     *             @OA\Property(property="success", type="boolean", example=true),
+     *             @OA\Property(property="message", type="string", example="Pokemon removed from banned list")
+     *         )
+     *     ),
+     *     @OA\Response(
+     *         response=401,
+     *         description="API key is required",
+     *         @OA\JsonContent(
+     *             @OA\Property(property="success", type="boolean", example=false),
+     *             @OA\Property(property="message", type="string", example="API key is required")
+     *         )
+     *     ),
+     *     @OA\Response(
+     *         response=403,
+     *         description="Invalid API key",
+     *         @OA\JsonContent(
+     *             @OA\Property(property="success", type="boolean", example=false),
+     *             @OA\Property(property="message", type="string", example="Invalid API key")
+     *         )
+     *     ),
+     *     @OA\Response(
+     *         response=404,
+     *         description="Pokemon not found in banned list",
+     *         @OA\JsonContent(
+     *             @OA\Property(property="success", type="boolean", example=false),
+     *             @OA\Property(property="message", type="string", example="Pokemon not found in banned list")
+     *         )
+     *     )
      * )
      */
     public function destroy(string $name): JsonResponse
