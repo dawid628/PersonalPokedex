@@ -27,4 +27,13 @@ class PokeApiClient
             'offset' => $offset
         ]);
     }
+
+    /**
+     * @param string $name
+     * @return Response
+     */
+    public function getPokemonByName(string $name): Response
+    {
+        return Http::get("$this->apiUrl/pokemon/$name");
+    }
 }

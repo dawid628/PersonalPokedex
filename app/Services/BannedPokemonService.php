@@ -77,4 +77,14 @@ readonly class BannedPokemonService
 
         $this->repository->delete($banned);
     }
+
+    /**
+     * @param string $name
+     * @return bool
+     */
+    public function isBanned(string $name): bool
+    {
+        $name = strtolower($name);
+        return $this->repository->exists($name);
+    }
 }

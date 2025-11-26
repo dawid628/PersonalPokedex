@@ -1,11 +1,11 @@
 <?php
 
 use App\Http\Controllers\BannedPokemonController;
-use App\Http\Controllers\PokemonController;
+use App\Http\Controllers\PokemonInfoController;
 use Illuminate\Support\Facades\Route;
 
 
-Route::get('/pokemons', [PokemonController::class, 'index']);
+Route::post('/info', [PokemonInfoController::class, 'index']);
 
 Route::middleware('authorize')->prefix('banned')->group(function () {
     Route::get('/', [BannedPokemonController::class, 'index']);

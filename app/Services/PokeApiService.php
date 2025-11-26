@@ -6,9 +6,9 @@ use App\Clients\PokeApiClient;
 use Illuminate\Support\Facades\Log;
 
 
-class PokeApiService
+readonly class PokeApiService
 {
-    public function __construct(private readonly PokeApiClient $client)
+    public function __construct(private PokeApiClient $client)
     {}
 
     /**
@@ -20,6 +20,26 @@ class PokeApiService
     {
         try {
             $response = $this->client->getPokemonList($limit, $offset);
+
+            if ($response->successful()) {
+                return $response->json();
+            }
+
+            return null;
+        } catch (\Exception $e) {
+            Log::error($e->getMessage());
+            return null;
+        }
+    }
+
+    /**
+     * @param string $name
+     * @return array|null
+     */
+    public function getOne(string $name): ?array
+    {
+        try {
+            $response = $this->client->getPokemonByName($name);
 
             if ($response->successful()) {
                 return $response->json();
