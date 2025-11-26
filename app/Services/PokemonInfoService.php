@@ -5,8 +5,9 @@ namespace App\Services;
 readonly class PokemonInfoService
 {
     public function __construct(
-        private PokeApiService $pokeApiService,
-        private BannedPokemonService $bannedPokemonService
+        private PokeApiService       $pokeApiService,
+        private BannedPokemonService $bannedPokemonService,
+        private PokemonService       $pokemonService
     ) {}
 
     /**
@@ -24,9 +25,16 @@ readonly class PokemonInfoService
                 continue;
             }
 
+            $customPokemon = $this->pokemonService->getByName($name);
+            if ($customPokemon) {
+                $pokemons[$name] = $customPokemon;
+                continue;
+            }
+
             $details = $this->pokeApiService->getOne($name);
 
             if ($details) {
+                $details['is_custom'] = false;
                 $pokemons[$name] = $details;
             }
         }
